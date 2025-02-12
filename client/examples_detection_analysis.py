@@ -2,9 +2,7 @@
 Example usage of the DBClient for detection analysis.
 Shows various ways to query and analyze detection data.
 """
-
 import requests
-from rich import print
 from typing import Optional
 from db_client import DBClient
 

@@ -78,6 +78,57 @@ def generate_default_bins() -> List[Tuple[int, int]]:
     """Generate default bins from 1 to 100 in steps of 10."""
     return [(i, i + 9) for i in range(1, 101, 10)]
 
+@app.post("/query/")
+async def execute_query(query: dict):
+    """
+    Executes a custom SQL query against the database.
+    
+    Parameters:
+        query (dict): Dictionary containing the SQL query with key 'query'
+        
+    Returns:
+        List of records from query execution
+    """
+    try:
+        if not hasattr(app.state, "conn") or app.state.conn is None:
+            logger.error("Database connection is missing or was not initialized")
+            raise HTTPException(status_code=500, detail="Database connection failed")
+            
+        if 'query' not in query:
+            raise HTTPException(status_code=400, detail="Request body must contain 'query' field")
+            
+        sql_query = query['query']
+        if not isinstance(sql_query, str) or not sql_query.strip():
+            raise HTTPException(status_code=400, detail="Query must be a non-empty string")
+            
+        # Get table name for validation
+        table_name = get_table_name()
+        
+        # Basic security check - ensure query only accesses our table
+        if not sql_query.lower().find(table_name.lower()) >= 0:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Query must use the table '{table_name}'"
+            )
+            
+        logger.info(f"Executing custom query:\n{sql_query}")
+        
+        # Execute query
+        df = app.state.conn.execute(sql_query).fetchdf()
+        
+        if df.empty:
+            logger.warning("Query returned no results")
+            return []
+            
+        logger.info(f"Query executed successfully. Returned {len(df)} records")
+        return df.to_dict(orient="records")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error executing custom query: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
 @app.get("/stats/")
 async def get_stats():
     """Returns parquet processing statistics."""
