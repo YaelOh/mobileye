@@ -1,5 +1,3 @@
-I'll help you create a comprehensive README.md file for your application:
-
 ```markdown
 # Vehicle Detection Analysis API
 
