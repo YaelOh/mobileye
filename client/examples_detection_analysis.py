@@ -20,6 +20,23 @@ def print_stats(client: DBClient) -> None:
     except requests.exceptions.RequestException as e:
         print(f"⚠️ Error fetching stats: {e}")
 
+def print_row_count(client: DBClient) ->None:
+    try:
+        table_name = "interview_table"
+        row_count = client.get_row_count(table_name)
+        print(f"\n📊 Row Count: {row_count}")
+    except requests.exceptions.RequestException as e:
+        print(f"⚠️ Error fetching detection rate: {e}")
+
+
+def print_sample_data(client: DBClient) ->None:
+    try:
+        table_name = "interview_table"
+        sample_data = client.get_sample_data("interview_table")
+        print("\n📊 Sample Data:")
+        print(sample_data)
+    except requests.exceptions.RequestException as e:
+        print(f"⚠️ Error fetching sample data: {e}")
 
 def print_detection_rates(client: DBClient) -> None:
     """Print various detection rate analyses."""
@@ -46,4 +63,6 @@ def run_examples() -> None:
     """Run all example analyses."""
     client = DBClient()
     print_stats(client)
+    print_row_count(client)
+    print_sample_data(client)
     print_detection_rates(client)

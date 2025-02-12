@@ -25,14 +25,8 @@ class DBClient:
         """Fetch processing statistics from the API."""
         response = self._make_request("GET", "/stats/")
         return ProcessingStats(**response)
-    
-    def get_table_info(self) -> Optional[str]:
-        """Get the current table name from the database."""
-        query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'BASE TABLE'"
-        tables_df = self.run_query(query)
-        return tables_df['table_name'].iloc[0] if not tables_df.empty else None
 
-    def get_row_count(self, table_name: str) -> int:
+    def get_row_count(self, table_name: str = "") -> int:
         """Get total number of rows in the specified table."""
         query = f"SELECT COUNT(*) as total FROM {table_name}"
         count_df = self.run_query(query)
