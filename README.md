@@ -50,6 +50,10 @@ docker-compose up --build
 
 ```
 project/
+├── client/
+│   ├── __init__.py
+│   ├── db_client.py
+│   ├── examples_detection_analysis.py
 ├── src/
 │   ├── __init__.py
 │   ├── main.py

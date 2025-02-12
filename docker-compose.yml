@@ -3,6 +3,11 @@ services:
     build: .
     ports:
       - "8000:8000"
+    environment:
+      - DATA_DIR=/data
+      - DB_FILE=interview.db
+      - HOST=0.0.0.0
+      - PORT=8000
     volumes:
       - ./src:/app/src
       - ./data:/data  # If you need to mount data directory
@@ -12,3 +17,4 @@ services:
 networks:
   app-network:
     driver: bridge
+

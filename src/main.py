@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
+from src.config import settings
 from src.db_connection import DuckDBConnection
 from src.parquet_parser import ParquetParser
 from src.logger_config import setup_logging, get_logger
@@ -23,11 +24,11 @@ async def lifespan(app: FastAPI):
     """
     try:
         # Initialize DuckDB connection
-        db = DuckDBConnection(db_file="interview.db")
+        db = DuckDBConnection(db_file=settings.DB_FILE)
         app.state.conn = db.connect()  # Store in app state
 
         # Initialize Parquet parser
-        app.state.parser = ParquetParser(app.state.conn,logger=logger)
+        app.state.parser = ParquetParser(app.state.conn,data_dir=settings.DATA_DIR,logger=logger)
 
         # Load parquet files
         parquet_files = app.state.parser.get_parquet_files()
@@ -232,7 +233,13 @@ async def get_detection_rate(request: DetectionRateRequest):
 ### Start FastAPI with Uvicorn
 def main():
     logger.info("Starting FastAPI application")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    logger.info(f"Configuration: DATA_DIR={settings.DATA_DIR}, DB_FILE={settings.DB_FILE}")
+    uvicorn.run(
+        "main:app", 
+        host=settings.HOST, 
+        port=settings.PORT, 
+        reload=True
+    )
 
 if __name__ == "__main__":
     main()
