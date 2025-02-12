@@ -136,11 +136,4 @@ The application uses a centralized logging system that writes to both console an
 - Each run creates a new log file with timestamp
 - Logs include timestamps, log levels, and detailed error information
 
-## 🔒 Security
-
-- Basic SQL injection prevention
-- Table name validation
-- Input validation using Pydantic models
-- Error handling and logging
-
 
