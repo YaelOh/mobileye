@@ -99,13 +99,17 @@ class DetectionRateRequest(BaseModel):
     bins: Optional[List[Tuple[int, int]]] = None  # Will use generate_default_bins() if None
     vehicle_types: Optional[List[str]] = None  # Will use get_vehicle_types() if None
 
-@app.post("query/")
-async def query(sql_query: str) -> dict:
+class Query(BaseModel):
+    """Pydantic model to validate input parameters"""
+    query: str
+
+@app.post("/query/")
+def query(query: Query) -> list:
     if not hasattr(app.state, "conn") or app.state.conn is None:
         logger.error("Database connection is missing or was not initialized")
         raise HTTPException(status_code=500, detail="Database connection failed")
     try:
-        df = app.state.conn.execute(sql_query).fetchdf()
+        df = app.state.conn.execute(query.query).fetchdf()
 
         if df.empty:
             logger.warning("Query returned no results")
@@ -177,7 +181,7 @@ async def get_detection_rate(request: DetectionRateRequest):
 
         logger.info(f"Executing SQL Query:\n{sql_query}")
 
-        res = await query(sql_query=sql_query) 
+        res = query(Query(query=sql_query)) 
         return res
     
     except HTTPException:
