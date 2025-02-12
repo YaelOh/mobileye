@@ -101,10 +101,10 @@ class DetectionRateRequest(BaseModel):
 
 @app.post("query/")
 async def query(sql_query: str) -> dict:
+    if not hasattr(app.state, "conn") or app.state.conn is None:
+        logger.error("Database connection is missing or was not initialized")
+        raise HTTPException(status_code=500, detail="Database connection failed")
     try:
-        if not hasattr(app.state, "conn") or app.state.conn is None:
-            logger.error("Database connection is missing or was not initialized")
-            raise HTTPException(status_code=500, detail="Database connection failed")
         df = app.state.conn.execute(sql_query).fetchdf()
 
         if df.empty:
@@ -113,8 +113,9 @@ async def query(sql_query: str) -> dict:
 
         logger.info(f"Detection rate query successful. Returned {len(df)} records")
         return df.to_dict(orient="records")
-    except HTTPException:
-        raise  # Re-raise HTTPException directly
+    except Exception as e:
+        logger.error(f"Error executing query: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Database query execution failed")
 
 @app.post("/detection_rate/")
 async def get_detection_rate(request: DetectionRateRequest):

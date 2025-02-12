@@ -74,6 +74,7 @@ class DBClient:
         response = self._make_request("POST", "/detection_rate/", json=payload)
         return pd.DataFrame(response)
 
+    ## this can be hold also in the generic client
     # def run_step_2_create_sql_query_over_data(self) -> Dict[str, Any]:
     #     """Execute the step 2 analysis pipeline."""
     #     return self._make_request("POST", "/step_2_create_sql_query_over_data/")

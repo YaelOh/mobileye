@@ -192,4 +192,4 @@ class TestErrorHandling:
             mock_execute.side_effect = Exception("Database query failed")
             response = client.post("/detection_rate/", json={})
             assert response.status_code == 500
-            assert "Internal Server Error" in response.json()["detail"]
+            assert "Database query execution failed" in response.json()["detail"]
