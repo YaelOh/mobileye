@@ -1,0 +1,14 @@
+services:
+  detection_api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./data:/data  # If you need to mount data directory
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
