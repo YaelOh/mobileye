@@ -28,7 +28,7 @@ class DBClient:
     
     def get_table_info(self) -> Optional[str]:
         """Get the current table name from the database."""
-        query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'main'"
+        query = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'BASE TABLE'"
         tables_df = self.run_query(query)
         return tables_df['table_name'].iloc[0] if not tables_df.empty else None
 
@@ -45,6 +45,7 @@ class DBClient:
     
     def run_query(self, query: str) -> pd.DataFrame:
         """Execute a custom SQL query."""
+        print(f"Running query: {query}")
         response = self._make_request(
             "POST", "/query/", json={"query": query}
         )
@@ -73,9 +74,9 @@ class DBClient:
         response = self._make_request("POST", "/detection_rate/", json=payload)
         return pd.DataFrame(response)
 
-    def run_step_2_create_sql_query_over_data(self) -> Dict[str, Any]:
-        """Execute the step 2 analysis pipeline."""
-        return self._make_request("POST", "/step_2_create_sql_query_over_data/")
+    # def run_step_2_create_sql_query_over_data(self) -> Dict[str, Any]:
+    #     """Execute the step 2 analysis pipeline."""
+    #     return self._make_request("POST", "/step_2_create_sql_query_over_data/")
 
     def _make_request(self, method: str, endpoint: str, **kwargs) -> Any:
         """Make HTTP request to API endpoint with error handling."""
