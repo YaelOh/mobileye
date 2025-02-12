@@ -10,7 +10,7 @@ import logging
 import os
 from datetime import datetime
 from contextlib import asynccontextmanager
-
+import pandas as pd
 # Create runs directory if it doesn't exist
 os.makedirs('runs', exist_ok=True)
 
@@ -99,17 +99,30 @@ class DetectionRateRequest(BaseModel):
     bins: Optional[List[Tuple[int, int]]] = None  # Will use generate_default_bins() if None
     vehicle_types: Optional[List[str]] = None  # Will use get_vehicle_types() if None
 
+@app.post("query/")
+async def query(sql_query: str) -> dict:
+    try:
+        if not hasattr(app.state, "conn") or app.state.conn is None:
+            logger.error("Database connection is missing or was not initialized")
+            raise HTTPException(status_code=500, detail="Database connection failed")
+        df = app.state.conn.execute(sql_query).fetchdf()
+
+        if df.empty:
+            logger.warning("Query returned no results")
+            return []
+
+        logger.info(f"Detection rate query successful. Returned {len(df)} records")
+        return df.to_dict(orient="records")
+    except HTTPException:
+        raise  # Re-raise HTTPException directly
+
 @app.post("/detection_rate/")
 async def get_detection_rate(request: DetectionRateRequest):
     """
     Returns detection success rates per vehicle type within given distance bins.
     """
     try:
-        if not hasattr(app.state, "conn") or app.state.conn is None:
-            logger.error("Database connection is missing or was not initialized")
-            raise HTTPException(status_code=500, detail="Database connection failed")
-
-        # Get dynamic table name
+        # Get dynamic table name, can also get in request
         table_name = get_table_name()
         
         # Set default bins if not provided
@@ -163,15 +176,8 @@ async def get_detection_rate(request: DetectionRateRequest):
 
         logger.info(f"Executing SQL Query:\n{sql_query}")
 
-        # Execute query in DuckDB - suppose to be under /query for using widely
-        df = app.state.conn.execute(sql_query).fetchdf()
-
-        if df.empty:
-            logger.warning("Query returned no results")
-            return []
-
-        logger.info(f"Detection rate query successful. Returned {len(df)} records")
-        return df.to_dict(orient="records")
+        res = await query(sql_query=sql_query) 
+        return res
     
     except HTTPException:
         raise  # Re-raise HTTPException directly
