@@ -163,7 +163,7 @@ async def get_detection_rate(request: DetectionRateRequest):
 
         logger.info(f"Executing SQL Query:\n{sql_query}")
 
-        # Execute query in DuckDB
+        # Execute query in DuckDB - suppose to be under /query for using widely
         df = app.state.conn.execute(sql_query).fetchdf()
 
         if df.empty:

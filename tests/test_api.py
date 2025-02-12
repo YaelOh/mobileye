@@ -23,6 +23,7 @@ def mock_app_state():
         mock_state.conn = MagicMock()
         mock_state.parser = MagicMock()
         mock_state.table_name = TEST_TABLE_NAME
+        mock_state.db_client = MagicMock()  # Mock DBClient
         yield mock_state
 
 @pytest.fixture
@@ -66,18 +67,19 @@ class TestStatsEndpoint:
 
     def test_get_stats_success(self, mock_app_state, client):
         """Test successful stats retrieval."""
-        mock_stats = {
+        mock_app_state.parser.get_stats.return_value = {
             "successful_files": 3,
             "failed_files": 1,
             "failed_details": [("bad.parquet", "error")]
         }
-        mock_app_state.parser.get_stats.return_value = mock_stats
-        
+
         response = client.get("/stats/")
         assert response.status_code == 200
-        assert response.json()["successful_files"] == 3
-        assert response.json()["failed_files"] == 1
-        assert len(response.json()["failed_details"]) == 1
+        assert response.json() == {
+            "successful_files": 3,
+            "failed_files": 1,
+            "failed_details": [{"file": "bad.parquet", "error": "error"}]
+        }
 
     def test_get_stats_error(self, mock_app_state, client):
         """Test error handling in stats retrieval."""
